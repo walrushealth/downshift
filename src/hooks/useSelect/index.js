@@ -1,5 +1,6 @@
 /* eslint-disable max-statements */
 import {useRef, useEffect, useCallback, useMemo} from 'react'
+import {isReactNative} from '../../is.macro'
 import {
   getElementIds,
   getItemIndex,
@@ -442,9 +443,11 @@ function useSelect(userProps = {}) {
   )
   const getToggleButtonProps = useCallback(
     (
-      {onClick, onKeyDown, refKey = 'ref', ref, ...rest} = {},
+      {onClick, onPress, onKeyDown, refKey = 'ref', ref, ...rest} = {},
       {suppressRefError = false} = {},
     ) => {
+      const onSelectKey = isReactNative ? 'onPress' : 'onClick'
+      const customClickHandler = isReactNative ? onPress : onClick
       const toggleButtonHandleClick = () => {
         dispatch({
           type: stateChangeTypes.ToggleButtonClick,
@@ -474,8 +477,8 @@ function useSelect(userProps = {}) {
       }
 
       if (!rest.disabled) {
-        toggleProps.onClick = callAllEventHandlers(
-          onClick,
+        toggleProps[onSelectKey] = callAllEventHandlers(
+          customClickHandler,
           toggleButtonHandleClick,
         )
         toggleProps.onKeyDown = callAllEventHandlers(
@@ -501,10 +504,13 @@ function useSelect(userProps = {}) {
       index,
       onMouseMove,
       onClick,
+      onPress,
       refKey = 'ref',
       ref,
       ...rest
     } = {}) => {
+      const onSelectKey = isReactNative ? 'onPress' : 'onClick'
+      const customClickHandler = isReactNative ? onPress : onClick
       const {state: latestState, props: latestProps} = latest.current
       const itemHandleMouseMove = () => {
         if (index === latestState.highlightedIndex) {
@@ -546,7 +552,10 @@ function useSelect(userProps = {}) {
           onMouseMove,
           itemHandleMouseMove,
         )
-        itemProps.onClick = callAllEventHandlers(onClick, itemHandleClick)
+        itemProps[onSelectKey] = callAllEventHandlers(
+          customClickHandler,
+          itemHandleClick,
+        )
       }
 
       return itemProps
